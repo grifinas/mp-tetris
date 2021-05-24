@@ -4,8 +4,10 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7">
 	<title>JsTetris	- javascript tetris - open source</title>
 	<meta http-equiv="Content-Type"	content="text/html;	charset=utf-8">
-	<link href="./shit/tetris.css"	rel="stylesheet" type="text/css">
+	<link href="tetris.css"	rel="stylesheet" type="text/css">
 	<link href="tetris.ico" rel="shortcut icon">
+	<script	type="text/javascript">var exports = {};</script>
+	<script	type="module" src="./src/index.js"></script>
 	<style type="text/css">
 	html, body { height: 100%; }
 	#tetris	{ margin: 0	auto; }
@@ -37,19 +39,19 @@
 				<tr>
 					<td>Rotate:</td>
 					<td></td>
-					<td><img src="./shit/key-up.gif" width="14" height="14" alt=""></td>
+					<td><img src="key-up.gif" width="14" height="14" alt=""></td>
 					<td></td>
 				</tr>
 				<tr>
 					<td>Move:</td>
-					<td><img src="./shit/key-left.gif" width="14" height="14" alt=""></td>
-					<td><img src="./shit/key-down.gif" width="14" height="14" alt=""></td>
-					<td><img src="./shit/key-right.gif" width="14" height="14" alt=""></td>
+					<td><img src="key-left.gif" width="14" height="14" alt=""></td>
+					<td><img src="key-down.gif" width="14" height="14" alt=""></td>
+					<td><img src="key-right.gif" width="14" height="14" alt=""></td>
 				</tr>
 				<tr>
 					<td>Fall:</td>
 					<td colspan="3">
-						<img src="./shit/key-space.gif" width="44" height="13" alt="">
+						<img src="key-space.gif" width="44" height="13" alt="">
 					</td>
 				</tr>
 				</table>
@@ -120,7 +122,10 @@
 	</div>
 
 </td></tr></table>
-<script	type="text/javascript">var exports = {};</script>
-<script	type="module" src="./dist/index.js"></script>
+
+	<script	type="text/javascript">
+		playTetris();
+	</script>
+
 </body>
 </html>

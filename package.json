@@ -5,8 +5,8 @@
   "author": "SalathielGenese <salathielgenese@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "build": "yarn run tsc",
-    "serve": "yarn run live-server"
+    "build": "tsc",
+    "serve": "live-server"
   },
   "devDependencies": {
     "live-server": "^1.2.1",
