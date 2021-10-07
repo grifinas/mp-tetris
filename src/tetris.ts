@@ -11,10 +11,9 @@ export class Tetris {
     //TODO make these redonly
     private puzzle: Puzzle = null;
     private area = null;
+    private speed = null;
 
     private readonly unit = 14; // unit = x pixels
-    private readonly areaX = 12; // area width = x units
-    private readonly areaY = 22; // area height = y units
 
     private paused = false;
 
@@ -49,15 +48,28 @@ export class Tetris {
         document.getElementById("tetris-highscores-close").onclick = highscores.close;
 
 
+        
         this.bind(controls);
     }
 
-    
+
+    tick() {
+        if (this.puzzle.isStopped()) {
+            if (this.puzzle.mayMoveDown()) {
+                this.puzzle.moveDown();
+            } else {
+                this.puzzle.freeze();
+            }
+        } else {
+            this.puzzle.reset();
+        }
+    }
+
     bind(controls: PlayerControls) {
         const keyboard = new Keyboard();
         keyboard.set(Key.n, () => this.start());
         keyboard.set(Key.p, () => this.pause());
-        keyboard.set(controls.turn, () => this.up());
+        keyboard.set(controls.turn, () => this.rotate());
         keyboard.set(controls.down, () => this.down());
         keyboard.set(controls.left, () => this.left());
         keyboard.set(controls.right, () => this.right());
@@ -67,11 +79,14 @@ export class Tetris {
     start() {
         if (this.puzzle && !confirm('Are you sure you want to start a new game ?')) return;
         this.reset();
+        //aaa
         this.stats.start();
         document.getElementById("tetris-nextpuzzle").style.display = "block";
         document.getElementById("tetris-keys").style.display = "none";
-        this.area = new Area(this.unit, this.areaX, this.areaY, "tetris-area");
+        this.area = new Area(this.unit, "tetris-area");
         this.puzzle = new Puzzle(this, this.area);
+        this.speed = 80 + (700 / this.stats.getLevel());
+        setInterval(() => this.tick(), this.speed);
         if (this.puzzle.mayPlace()) {
             this.puzzle.place();
         } else {
@@ -98,23 +113,23 @@ export class Tetris {
     };
 
     pause() {
-        if (this.puzzle == null) return;
-        if (this.paused) {
-            this.puzzle.running = true;
-            this.puzzle.fallDownID = setTimeout(this.puzzle.fallDown, this.puzzle.speed);
-            document.getElementById('tetris-pause').style.display = 'block';
-            document.getElementById('tetris-resume').style.display = 'none';
-            this.stats.timerId = setInterval(this.stats.incTime, 1000);
-            this.paused = false;
-        } else {
-            if (!this.puzzle.isRunning()) return;
-            if (this.puzzle.fallDownID) clearTimeout(this.puzzle.fallDownID);
-            document.getElementById('tetris-pause').style.display = 'none';
-            document.getElementById('tetris-resume').style.display = 'block';
-            clearTimeout(this.stats.timerId);
-            this.paused = true;
-            this.puzzle.running = false;
-        }
+        // if (this.puzzle == null) return;
+        // if (this.paused) {
+        //     this.puzzle.running = true;
+        //     this.puzzle.fallDownID = setTimeout(this.puzzle.fallDown, this.puzzle.speed);
+        //     document.getElementById('tetris-pause').style.display = 'block';
+        //     document.getElementById('tetris-resume').style.display = 'none';
+        //     this.stats.timerId = setInterval(this.stats.incTime, 1000);
+        //     this.paused = false;
+        // } else {
+        //     if (!this.puzzle.isRunning()) return;
+        //     if (this.puzzle.fallDownID) clearTimeout(this.puzzle.fallDownID);
+        //     document.getElementById('tetris-pause').style.display = 'none';
+        //     document.getElementById('tetris-resume').style.display = 'block';
+        //     clearTimeout(this.stats.timerId);
+        //     this.paused = true;
+        //     this.puzzle.running = false;
+        // }
     };
 
     gameOver() {
@@ -124,7 +139,7 @@ export class Tetris {
         document.getElementById("tetris-gameover").style.display = "block";
     };
 
-    up() {
+    rotate() {
         if (this.puzzle && this.puzzle.isRunning() && !this.puzzle.isStopped()) {
             if (this.puzzle.mayRotate()) {
                 this.puzzle.rotate();

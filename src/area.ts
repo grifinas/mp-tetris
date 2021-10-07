@@ -1,3 +1,5 @@
+import { COLUMNS, DEBUG, pos, ROWS } from './config.js';
+
 /**
  * Area consists of blocks (2 dimensional board).
  * Block contains "0" (if empty) or Html Object.
@@ -7,123 +9,155 @@
  */
 export class Area {
     private readonly el;
-    private readonly board = [];
+    private board: number[] = [];
+    private readonly visualBoard = [];
 
-    constructor(public readonly unit: number, public readonly x: number, public readonly y: number, private readonly id) {
+    constructor(public readonly unit: number, id: string) {
         this.el = document.getElementById(id);
 
-        // create 2-dimensional board
-        for (let y = 0; y < this.y; y++) {
-            this.board.push(new Array());
-            for (let x = 0; x < this.x; x++) {
-                this.board[y].push(0);
+        this.board = new Array(COLUMNS * ROWS).fill(0);
+        this.visualBoard = this.board.map((_, i) => {
+            const el = document.createElement("div");
+            el.className = "block block0";
+            if (DEBUG.showBlockNumbers) {
+                el.innerHTML = `${i}`;
+            } else if (DEBUG.showBlockY) {
+                el.innerHTML = `${(i / COLUMNS) | 0}`;
             }
-        }
+            this.el.appendChild(el);
+            return el;
+        });
     }
 
-    /**
-     * Removing html elements from area.
-     * @return void
-     * @access public
-     */
-    destroy() {
-        for (var y = 0; y < this.board.length; y++) {
-            for (var x = 0; x < this.board[y].length; x++) {
-                if (this.board[y][x]) {
-                    this.el.removeChild(this.board[y][x]);
-                    this.board[y][x] = 0;
-                }
-            }
-        }
-    };
+    rerender() {
+        this.board.forEach((value, index) => {
+            this.visualBoard[index].className = `block block${Math.abs(value)}`;
+        });
+    }
 
-    /**
-     * Searching for full lines.
-     * Must go from the bottom of area to the top.
-     * Returns the number of lines removed - needed for Stats.score.
-     * @see isLineFull() removeLine()
-     * @return void
-     * @access public
-     */
-    removeFullLines() {
+    removeFromBoard(xOffset: number, yOffset: number, structure: number[][]): void {
+        structure.forEach((row, y) => row.forEach((value, x) => {
+            value && this.setAt(pos(x + xOffset, y + yOffset), 0)
+        }))
+    }
+
+    setOnBoard(xOffset: number, yOffset: number, structure: number[][]): void {
+        structure.forEach((row, y) => row.forEach((value, x) => {
+            value && this.setAt(pos(x + xOffset, y + yOffset), value)
+        }))
+    }
+
+    movingPuzzle(xOffset: number, yOffset: number, structure: number[][], realNumber?: number): void {
+        const movingStructure = structure.map(row => row.map(number => number && realNumber || -number));
+
+        this.setOnBoard(xOffset, yOffset, movingStructure);
+    }
+
+    removeFullRows() {
         var lines = 0;
-        for (var y = this.y - 1; y > 0; y--) {
-            if (this.isLineFull(y)) {
-                this.removeLine(y);
+        for (let y = 0; y > ROWS; y++) {
+            if (this.isRowFull(y)) {
+                this.removeRow(y);
                 lines++;
-                y++;
+                y--;
             }
         }
         return lines;
     };
 
-    /**
-     * @param int y
-     * @return bool
-     * @access public
-     */
-    isLineFull(y) {
-        for (var x = 0; x < this.x; x++) {
-            if (!this.board[y][x]) { return false; }
+    getBoard() {
+        return this.board;
+    }
+
+    getBlock(y: number, x: number): boolean {
+        if (y < 0) { return false; }
+        if (y < ROWS && x < COLUMNS) {
+            return this.board[pos(x, y)] > 0;
+        } else {
+            throw new Error(`Area.getBlock(${y}, ${x})`);
+        }
+    };
+
+    getColumn(x: number) {
+        if (x < 0) { return []; }
+        if (x < COLUMNS) {
+            return this.board.filter((value, i) => {
+                return i % COLUMNS === x;
+            });
+        } else {
+            throw new Error(`Area.getColumn(${x})`);
+        }
+    }
+
+    // mayMoveDown() {
+    //     for (var y = 0; y < this.puzzle.length; y++) {
+    //         for (var x = 0; x < this.puzzle[y].length; x++) {
+    //             if (this.puzzle[y][x]) {
+    //                 if (this.getY() + y + 1 >= ROWS) {
+    //                     this.stopped = true;
+    //                     return false;
+    //                 }
+    //                 if (this.area.getBlock(this.getY() + y + 1, this.getX() + x)) {
+    //                     this.stopped = true;
+    //                     return false;
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     return true;
+    // };
+
+    getLowestViablePosition(xOffset, structure: number[][]) {
+        let lowestPoint = ROWS;
+        const skipedColumns = {};
+
+        for (let y = structure.length - 1; y >= 0; y--) {
+            for (let x = 0; x < structure[y].length; x++) {
+                if (skipedColumns[x]) {
+                    continue;
+                }
+                
+                if (structure[y][x]) {
+                    skipedColumns[x] = true;
+                    
+                    let lastFreePoint = 0;
+                    const column = this.getColumn(xOffset + x);
+
+                    for (; lastFreePoint < column.length - 1; lastFreePoint++) {
+                        if (column[lastFreePoint] > 0) {
+                            lastFreePoint -= 1;
+                            break;
+                        }
+                    }
+                    lastFreePoint -= y ;
+                    lowestPoint = lowestPoint > lastFreePoint ? lastFreePoint : lowestPoint;
+                }
+            }
+        }
+
+        return lowestPoint;
+    }
+
+    private isRowFull(y: number) {
+        for (var x = 0; x < COLUMNS; x++) {
+            if (!this.board[pos(x, y)]) { return false; }
         }
         return true;
     };
 
-    /**
-     * Remove given line
-     * Remove html objects
-     * All lines that are above given line move down by 1 unit
-     * @param int y
-     * @return void
-     * @access public
-     */
-    removeLine(y) {
-        for (var x = 0; x < this.x; x++) {
-            this.el.removeChild(this.board[y][x]);
-            this.board[y][x] = 0;
-        }
-        y--;
-        for (; y > 0; y--) {
-            for (var x = 0; x < this.x; x++) {
-                if (this.board[y][x]) {
-                    var el = this.board[y][x];
-                    el.style.top = el.offsetTop + this.unit + "px";
-                    this.board[y + 1][x] = el;
-                    this.board[y][x] = 0;
-                }
+    private removeRow(y: number) {
+        const emptyRow = new Array(COLUMNS).fill(0);
+        this.board = this.board.splice(y * COLUMNS, y * COLUMNS + ROWS).concat(emptyRow);
+    };
+
+    private setAt(position: number, value: number): void {
+        try {
+            this.board[position] = value;
+            this.visualBoard[position].className = `block block${Math.abs(value)}`;
+        } catch (e) {
+            if (value > 0) {
+                console.trace('setAt', position, e)
             }
         }
-    };
-
-    /**
-     * @param int y
-     * @param int x
-     * @return mixed 0 or Html Object
-     * @access public
-     */
-    getBlock(y: number, x: number) {
-        if (y < 0) { return 0; }
-        if (y < this.y && x < this.x) {
-            return this.board[y | 0][x | 0];
-        } else {
-            throw new Error(`Area.getBlock(${y}, ${x}) failed, ${this.y}, ${this.x}`);
-        }
-    };
-
-    /**
-     * Add Html Element to the area.
-     * Find (x,y) position using offsetTop and offsetLeft
-     * @param object el
-     * @return void
-     * @access public
-     */
-    addElement(el) {
-        var x = el.offsetLeft / this.unit;
-        var y = el.offsetTop / this.unit;
-        if (y >= 0 && y < this.y && x >= 0 && x < this.x) {
-            this.board[y][x] = el;
-        } else {
-            // not always an error ..
-        }
-    };
+    }
 }

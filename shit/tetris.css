@@ -47,21 +47,15 @@ body, table, input {
 .grid5 { left: 126px; }
 .grid6 { left: 154px; }
 
-#tetris	.block0,
-#tetris	.block1,
-#tetris	.block2,
-#tetris	.block3,
-#tetris	.block4,
-#tetris	.block5,
-#tetris	.block6	{
+#tetris	.block {
+	float: left;
 	z-index: 1000;
 	font-size: 10px;
 	line-height: 1em;
 	font-family: arial;
-	position: absolute;
 	width: 13px;
 	height:	13px;
-	border:	0.5px solid #ffffff;
+	/* border:	0.5px solid #ffffff; */
 	/* with	margin 0.5px there were	problems with offsetLeft and offsetTop */
 }
 
@@ -163,48 +157,15 @@ body, table, input {
 #tetris-stats-score	{ font-weight: bold; }
 
 
-/*
-	|
-	---
-*/
-#tetris	.block1	{ background: #32a4fa; }
-
-/*
-	  |
-	---
-*/
-#tetris	.block0	{ background: #38C44F; }
-
-
-
-/*
-	--
-   --
-*/
-#tetris	.block2	{ background: #FFAC1C; }
-
-/*
-	--
-	 --
-*/
-#tetris	.block3	{ background: #FF6600; }
-
-/*
-	|
-   ---
-*/
-#tetris	.block4	{ background: #CC54C4; }
-
-/*
-	--
-	--
-*/
-#tetris	.block5	{ background: #999;	}
-
-/*
-	----
-*/
-#tetris	.block6	{ background: #FF0000; }
+#tetris	.block0	{ visibility: hidden; }
+#tetris	.block1	{ background: #38C44F; }
+#tetris	.block2	{ background: #32a4fa; }
+#tetris	.block3	{ background: #FFAC1C; }
+#tetris	.block4	{ background: #FF6600; }
+#tetris	.block5	{ background: #CC54C4; }
+#tetris	.block6	{ background: #999;	}
+#tetris	.block7	{ background: #FF0000; }
+#tetris	.block99	{ background: rgba(20, 20, 20, 0.2); }
 
 
 /*** window	***/
